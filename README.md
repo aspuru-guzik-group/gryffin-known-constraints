@@ -1,6 +1,6 @@
 # gryffin-known-constraints
 
-Results for Bayesian optimization with known experimental and design constraints for chemistry applications
+Results for Bayesian optimization with known experimental and design constraints for chemistry applications (https://arxiv.org/abs/2203.17241)
 
 
 ## Installation
@@ -36,4 +36,20 @@ To run this example, you will first need to install the `Olympus` [package](http
 ```bash
 pip install olymp
 python run_example.py
+```
+
+## Citation
+
+The results in this repo come from open source research. If you make use of these results in scientific publications, please
+cite the following article
+
+```
+@misc{hickman_constraints_2022,
+      title={Bayesian optimization with known experimental and design constraints for chemistry applications}, 
+      author={Riley J. Hickman, Matteo Aldeghi and Florian Häse  and Alán Aspuru-Guzik},
+      year={2022},
+      eprint={2203.17241},
+      archivePrefix={arXiv},
+      primaryClass={math.OC}
+      }
 ```
