@@ -19,7 +19,7 @@ from emulator import BayesianNetwork
 budget = 100
 repeats = 100
 
-chimera = Chimera(tolerances=[1.0, 0.], absolutes=[True, True], goals=['max', 'min'])
+chimera = Chimera(tolerances=[0.9, 0.0], absolutes=[True, True], goals=['max', 'min'])
 
 # --------------------
 # load emulator model
@@ -28,13 +28,33 @@ chimera = Chimera(tolerances=[1.0, 0.], absolutes=[True, True], goals=['max', 'm
 device = 'cpu'
 model = BayesianNetwork(3, 4, 64).to(device)
 checkpoint = '../torch_prod_models/fullerenes.pth'
-model.load_state_dict(torch.load(checkpoint))
+model.load_state_dict(torch.load(checkpoint, map_location='cpu'))
 # load feature scaler
 feature_scaler = pickle.load(open('../torch_prod_models/feature_scaler.pkl', 'rb'))
 
 # ---------
 # Functions
 # ---------
+
+def cost_per_minute(flow_c60, flow_sultine):
+    # C60 cost on Sigma Aldrich: $422 for 5 g
+    # Dibromo-o-xylene cost on Sigma Aldrich: $191 for 100 g
+    # C60 concentration: 2 mg/mL
+    # Sultine concentration: 1.4 mg/mL
+    #
+    # say we consider a scale up where flows are L/min instead of uL/min
+    # (relative costs are the same anyway, just nicer numbers to look at and because cost might matter more at larger scale)
+    # $422 / 5000 mg x 2 mg/mL = 0.1688 $/mL = 168.8 $/L for C60
+    # $191 / 100000mg x 1.4 mg/mL = 0.002674 $/mL = 2.674 $/L for Sultine
+
+    # cost of reagents in $/min (assuming flows of L/min)
+
+    # convert values from uL/min to L/min
+    flow_c60 = 1e-6*flow_c60
+    flow_sultine = 1e-6*flow_sultine
+    return (flow_c60*168.8) + (flow_sultine*2.674)
+
+
 def run_experiment(ind):
     c60 = ind[0]
     sul = ind[1]
@@ -44,15 +64,14 @@ def run_experiment(ind):
     _x  = feature_scaler.transform(x)
     pred, _ = model.predict(torch.tensor(_x).float())
     na, ma, ba, ta = pred.cpu().detach().numpy()[0]
-
     return na, ma, ba, ta
 
 def eval_merit(ind):
     na, ma, ba, ta = run_experiment(ind)
-    obj0 = ba/ma  # obj0 = max BA
-    obj1 = ta   # obj1 = min TA
-    #obj2 = ma   # obj2 = max MA
-    #return obj0, obj1, obj2
+    obj0 = ba+ma  # obj0 = maximize [X2]+[X1]>0.9
+    obj1 = cost_per_minute(
+                ind[0], ind[1]
+    )    # obj1 = minimize cost as much as possible
     return obj0, obj1, na, ma, ba, ta
 
 def known_constraints(ind):
@@ -467,7 +486,7 @@ for num_repeat in range(missing_repeats):
     # store run results into a DataFrame
     c60 = [x[0] for x in X_samples]
     sul = [x[1] for x in X_samples]
-    T = [x[1] for x in X_samples]
+    T = [x[2] for x in X_samples]
     obj0 = [y[0] for y in y_samples]
     obj1 = [y[1] for y in y_samples]
     NA = [y[2] for y in y_samples]

@@ -25,7 +25,7 @@ budget = 100
 repeats = 100
 n_init_samples = 5
 
-tolerances = np.array([1.0, 0.0])
+tolerances = np.array([0.9, 0.0])
 absolutes = [True, True]
 goals = ['max', 'min']
 chimera = Chimera(

@@ -82,9 +82,8 @@ config = {
         {"name": "T", "type": "continuous", "low": 100., "high": 150.}
     ],
     "objectives": [
-        {"name": "obj0", "goal": "max", "tolerance": 1.0, "absolute": True},
-        {"name": "obj1", "goal": "min", "tolerance": 0.0, "absolute": True},
-        #{"name": "obj2", "goal": "max", "tolerance": 1., "absolute": True}
+        {"name": "obj0", "goal": "max", "tolerance": 0.9, "absolute": True}, # sum X2+X1
+        {"name": "obj1", "goal": "min", "tolerance": 0.0, "absolute": True}, # mol fraction X3
     ]
 }
 

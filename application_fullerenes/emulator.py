@@ -88,7 +88,26 @@ class BayesianNetwork(nn.Module):
 
         return F.softmax(x_, dim=1), kl_sum
 
+
 # helper functions
+def cost_per_minute(flow_c60, flow_sultine):
+    # C60 cost on Sigma Aldrich: $422 for 5 g
+    # Dibromo-o-xylene cost on Sigma Aldrich: $191 for 100 g
+    # C60 concentration: 2 mg/mL
+    # Sultine concentration: 1.4 mg/mL
+    #
+    # say we consider a scale up where flows are L/min instead of uL/min
+    # (relative costs are the same anyway, just nicer numbers to look at and because cost might matter more at larger scale)
+    # $422 / 5000 mg x 2 mg/mL = 0.1688 $/mL = 168.8 $/L for C60
+    # $191 / 100000mg x 1.4 mg/mL = 0.002674 $/mL = 2.674 $/L for Sultine
+
+    # cost of reagents in $/min (assuming flows of L/min)
+
+    # convert values from uL/min to L/min
+    flow_c60 = 1e-6*flow_c60
+    flow_sultine = 1e-6*flow_sultine
+    return (flow_c60*168.8) + (flow_sultine*2.674)
+
 def run_experiment(param):
     c60 = param['c60_flow']
     sul = param['sultine_flow']
@@ -104,8 +123,10 @@ def run_experiment(param):
 
 def eval_merit(param):
     na, ma, ba, ta = run_experiment(param)
-    param['obj0'] = ba / ma  # obj0 =  BA / MA > 1
-    param['obj1'] = ta   # obj1 = min TA
+    param['obj0'] = ma+ba # obj0 = maximize [X2]+[X1]>0.9
+    param['obj1'] = cost_per_minute(
+                param['c60_flow'], param['sultine_flow']
+    )    # obj1 = minimize cost as much as possible
 
     # append also individual fractions
     param['NA'] = na

@@ -21,6 +21,8 @@ sampling_strategies = np.array([1, -1])
 # ---------
 # Functions
 # ---------
+
+
 def known_constraints(param):
     flow_sum = param['c60_flow'] + param['sultine_flow']
     b0 = 30. < flow_sum < 310.
@@ -82,9 +84,8 @@ config = {
         {"name": "T", "type": "continuous", "low": 100., "high": 150.}
     ],
     "objectives": [
-        {"name": "obj0", "goal": "max", "tolerance": 1.0, "absolute": True}, #ratio X2/X1
+        {"name": "obj0", "goal": "max", "tolerance": 0.9, "absolute": True}, # sum X2+X1
         {"name": "obj1", "goal": "min", "tolerance": 0.0, "absolute": True}, # mol fraction X3
-        #{"name": "obj2", "goal": "max", "tolerance": 1., "absolute": True}
     ]
 }
 
