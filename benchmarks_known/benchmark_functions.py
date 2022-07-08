@@ -197,6 +197,49 @@ class HyperEllipsoidConstr(HyperEllipsoid, Constr):
 
         return True
 
+
+class SchwefelConstr(Schwefel, Constr):
+	def __init__(self):
+		Schwefel.__init__(self)
+
+		np.random.seed(42)
+		N = 20
+		self.centers = [np.random.uniform(low=0.0, high=1.0, size=2) for i in range(N)]
+		self.radii = [np.random.uniform(low=0.05, high=0.15, size=1) for i in range(N)]
+
+	def is_feasible(self, Xi):
+		if isinstance(Xi, dict):
+			Xi = [val for _, val in Xi.items()]
+
+		elif np.logical_or(
+			isinstance(Xi, list),
+			isinstance(Xi, np.ndarray)
+		):
+			pass
+		x0 = Xi[0]
+		x1 = Xi[1]
+		Xi = np.array([x0, x1])
+		for c, r in zip(self.centers, self.radii):
+			if np.linalg.norm(c - Xi) < r:
+				return False
+		return True
+
+class DiscreteAckleyConstr(DiscreteAckley, Constr):
+	def is_feasible(self, Xi):
+		if isinstance(Xi, dict):
+			Xi = [val for _, val in Xi.items()]
+
+		elif np.logical_or(
+			isinstance(Xi, list),
+			isinstance(Xi, np.ndarray)
+		):
+			pass
+		x0 = Xi[0]
+		x1 = Xi[1]
+		if x0+x1 < 0.3:
+			return False
+		return True
+
 # ====================
 # Categorical surfaces
 # ====================
